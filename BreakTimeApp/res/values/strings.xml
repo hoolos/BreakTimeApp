@@ -1,0 +1,13 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <string name="app_name">MapsProject</string>
+    <string name="warning_msg1">GPS не включен</string>
+    <string name="find">ОК</string>
+    <string name="hint">Найти</string>
+    <string name="warning_msg2">Вы не ввели место</string>
+    <string name="consumerToken">aYA6Px3QI6oDvsR5EMAwkjNzj</string>
+    <string name="consumerSecret">0xiHsPnbNbryLGeftiip7oiqZntzH0JDXxM3s5CY2f7hyRlHUk</string>
+    <string name="button1Str">Sign in</string>
+     <string name="conn_lost_msg">Internet connection lost</string>
+
+</resources>

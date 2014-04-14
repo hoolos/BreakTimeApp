@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="gen"/>
+	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
+	<classpathentry kind="lib" path="E:/Diplom/TwitterAuthLib/lib/twitter4j-examples-4.0.1.jar" sourcepath="E:/Diplom/TwitterAuthLib/twitter4j-examples/src"/>
+	<classpathentry exported="true" kind="lib" path="E:/Diplom/TwitterAuthLib/newSNAPSHOT/lib/twitter4j-core-4.0.2-SNAPSHOT.jar" sourcepath="E:/Diplom/TwitterAuthLib/newSNAPSHOT/twitter4j-core/src"/>
+	<classpathentry exported="true" kind="lib" path="E:/android/workspace/PlacesAPI/bin/placesapi.jar"/>
+	<classpathentry kind="output" path="bin/classes"/>
+</classpath>
