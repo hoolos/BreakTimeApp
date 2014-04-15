@@ -102,7 +102,7 @@ public class TweetsActivity extends AbstractAppActivity{
 	}
 
 	public void ifEndOfList(){
-		if(adapter.getCount()==lView.getLastVisiblePosition()+1){
+		if(adapter.getCount()==(lView.getLastVisiblePosition()+1)){
 			Thread thread =new Thread(task12);
 			thread.start();
 		}
