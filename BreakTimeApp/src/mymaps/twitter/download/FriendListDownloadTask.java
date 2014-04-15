@@ -13,7 +13,6 @@ import org.gmarz.googleplaces.GooglePlaces;
 import org.gmarz.googleplaces.models.DetailsResult;
 import org.gmarz.googleplaces.models.PlacesResult;
 
-import com.google.android.gms.drive.internal.m;
 
 import mymaps.utils.ColumnsForCursors;
 import mymaps.utils.FriendListAdapter;

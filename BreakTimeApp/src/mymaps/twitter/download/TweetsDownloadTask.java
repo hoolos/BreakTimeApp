@@ -39,7 +39,7 @@ public class TweetsDownloadTask extends AsyncTask<Integer, Void, Void>{
 	@Override
 	public Void doInBackground(Integer... params) {
 		try{
-			count+=params[0];
+			count=4;
 			Paging page =new Paging(1, count);
 			ResponseList<twitter4j.Status> tweetsList=twitter.getUserTimeline(user.getId(), page);
 			List<TweetRowList> rows=new ArrayList<TweetRowList>();

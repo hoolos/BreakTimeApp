@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
-            android:src="@drawable/common_signin_btn_icon_dark" />
+            android:src="@drawable/ic_launcher" />
 
         <TextView
             android:id="@+id/textView1"

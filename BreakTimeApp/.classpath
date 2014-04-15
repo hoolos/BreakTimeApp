@@ -8,5 +8,26 @@
 	<classpathentry kind="lib" path="E:/Diplom/TwitterAuthLib/lib/twitter4j-examples-4.0.1.jar" sourcepath="E:/Diplom/TwitterAuthLib/twitter4j-examples/src"/>
 	<classpathentry exported="true" kind="lib" path="E:/Diplom/TwitterAuthLib/newSNAPSHOT/lib/twitter4j-core-4.0.2-SNAPSHOT.jar" sourcepath="E:/Diplom/TwitterAuthLib/newSNAPSHOT/twitter4j-core/src"/>
 	<classpathentry exported="true" kind="lib" path="E:/android/workspace/PlacesAPI/bin/placesapi.jar"/>
+	<classpathentry kind="lib" path="E:/ProgramFiles/adt-bundle-windows-x86_64-20140321/sdk/platforms/android-14/android.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="http://developer.android.com/reference/"/>
+		</attributes>
+		<accessrules>
+			<accessrule kind="nonaccessible" pattern="com/android/internal/**"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry kind="lib" path="E:/ProgramFiles/adt-bundle-windows-x86_64-20140321/sdk/platforms/android-15/android.jar" sourcepath="/MapsProject/src/mymaps">
+		<attributes>
+			<attribute name="javadoc_location" value="http://developer.android.com/reference/"/>
+		</attributes>
+		<accessrules>
+			<accessrule kind="nonaccessible" pattern="com/android/internal/**"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/google-play-services_lib">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="google-play-services_lib"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

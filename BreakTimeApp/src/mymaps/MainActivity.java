@@ -5,7 +5,6 @@ package mymaps;
 
 import java.util.List;
 import java.util.concurrent.Executor;
-
 import twitter4j.Twitter;
 import twitter4j.User;
 import mymaps.twitter.download.AdapterCallbackInt;
