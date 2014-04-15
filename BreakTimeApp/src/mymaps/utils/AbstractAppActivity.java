@@ -1,16 +1,30 @@
 package mymaps.utils;
 
+import android.R.integer;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.DisplayMetrics;
+import android.view.Display;
 
 public abstract class AbstractAppActivity extends Activity{
 	
 
+	public static int DISPLAY_WIDTH;
+	public static int DISPLAY_HEIGHTS;
+	
+	public AbstractAppActivity(){
+		super();
+		DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+	    DISPLAY_WIDTH = metrics.widthPixels;
+	    DISPLAY_HEIGHTS = metrics.heightPixels;
+	}
 	public boolean isOnline() {
 	    ConnectivityManager cm =
 	        (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
