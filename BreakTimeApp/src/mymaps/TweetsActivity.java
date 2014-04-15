@@ -1,6 +1,7 @@
 package mymaps;
 
 import java.io.InputStream;
+import java.lang.Thread.State;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask.Status;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
@@ -53,7 +55,8 @@ public class TweetsActivity extends AbstractAppActivity{
 	private TweetsListAdapter adapter;
 	private ListView lView;
 	private TweetsDownloadTask task;
-	private Task12 task12;
+	private Thread thread;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -69,10 +72,9 @@ public class TweetsActivity extends AbstractAppActivity{
         rLayout=(RelativeLayout) findViewById(R.id.rel_layout1);
         textView.setText(rowList.getUser().getName());
         imageView.setImageBitmap(rowList.getImage());
-        task=new TweetsDownloadTask(TwitterSingleton.getInstance().getTwitter()
-        		, user, adapter);
-        task12=new Task12();
-        Thread thread=new Thread(task12);
+        Handler handler=new Handler();
+        task=new TweetsDownloadTask(handler, user, adapter);
+        thread=new Thread(task);
         thread.start();
         rLayout.setOnClickListener(new OnClickListener() {
 			
@@ -93,7 +95,7 @@ public class TweetsActivity extends AbstractAppActivity{
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem,
 					int visibleItemCount, int totalItemCount) {
-				Log.d("123", task.getStatus().name());
+				//Log.d("123", task.getStatus().name());
 				ifEndOfList();
 				
 			}
@@ -103,8 +105,7 @@ public class TweetsActivity extends AbstractAppActivity{
 
 	public void ifEndOfList(){
 		if(adapter.getCount()==(lView.getLastVisiblePosition()+1)){
-			Thread thread =new Thread(task12);
-			thread.start();
+			Log.d("123", thread.getState().name());
 		}
 	}
 	@Override
@@ -131,81 +132,7 @@ public class TweetsActivity extends AbstractAppActivity{
 		super.onStop();
 	}
 
-	private class Task12 implements Runnable{
-		private int count=4;
-		
-		public Task12(){
-		}
-		@Override
-		public void run() {
-			try{
-			count+=count;
-			Paging page =new Paging(1, count);
-			ResponseList<twitter4j.Status> tweetsList=TwitterSingleton.
-					getInstance().getTwitter()
-					.getUserTimeline(user.getId(), page);
-			List<TweetRowList> rows=new ArrayList<TweetRowList>();
-			ExecutorService exec=Executors.newCachedThreadPool();
-			TweetRowList tweet;
-			for(twitter4j.Status status: tweetsList){
-				MediaEntity[] mEntities=status.getMediaEntities();
-				tweet=new TweetRowList(status.getUser(),null, status.getText());
-				if(mEntities.length!=0){
-					String image=mEntities[0].getMediaURL();
-					exec.execute(new Task2(image, tweet));
-				}
-				rows.add(tweet);
-			}
-			adapter.setRows(rows);
-			TweetsActivity.this.runOnUiThread(new Runnable() {
-				
-				@Override
-				public void run() {
-					adapter.notifyDataSetChanged();
-					
-				}
-			});
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-			
-		}
-	}
-		
-
-class Task2 implements Runnable{
-
-	private TweetRowList tList;
-	private String url1;
 	
-	public Task2(String url,TweetRowList tList){
-		this.tList=tList;
-		this.url1=url;
-	}
-	@Override
-	public void run() {
-		try{
-			URL url=new URL(url1);
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            Bitmap myBitmap = BitmapFactory.decodeStream(input);
-            
-            tList.setImage(myBitmap);
-            TweetsActivity.this.runOnUiThread(new Runnable() {
-				
-				@Override
-				public void run() {
-					adapter.notifyDataSetChanged();
-					
-				}
-			});
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-		
-	}
+
 	
-}
 }

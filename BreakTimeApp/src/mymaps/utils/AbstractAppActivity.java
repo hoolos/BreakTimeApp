@@ -18,13 +18,6 @@ public abstract class AbstractAppActivity extends Activity{
 	public static int DISPLAY_WIDTH;
 	public static int DISPLAY_HEIGHTS;
 	
-	public AbstractAppActivity(){
-		super();
-		DisplayMetrics metrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(metrics);
-	    DISPLAY_WIDTH = metrics.widthPixels;
-	    DISPLAY_HEIGHTS = metrics.heightPixels;
-	}
 	public boolean isOnline() {
 	    ConnectivityManager cm =
 	        (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);

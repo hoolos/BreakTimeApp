@@ -11,10 +11,12 @@ import java.util.concurrent.Executors;
 import mymaps.utils.AbstractAppActivity;
 import mymaps.utils.TweetRowList;
 import mymaps.utils.TweetsListAdapter;
+import mymaps.utils.TwitterSingleton;
 import android.R.integer;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.widget.Adapter;
 import twitter4j.MediaEntity;
 import twitter4j.Paging;
@@ -30,11 +32,15 @@ public class TweetsDownloadTask implements Runnable{
 	private User user;
 	private TweetsListAdapter adapter;
 	private final int count=4;
+	private Handler handler;
+	private ExecutorService exec;
 	
-	public TweetsDownloadTask(Twitter twitter, User user,TweetsListAdapter adapter){
+	public TweetsDownloadTask(Handler handler, User user,TweetsListAdapter adapter){
 		this.adapter=adapter;
-		this.twitter=twitter;
 		this.user=user;
+		this.handler=handler;
+		twitter=TwitterSingleton.getInstance().getTwitter();
+		exec=Executors.newFixedThreadPool(4);
 	}
 	
 	
@@ -60,10 +66,18 @@ public class TweetsDownloadTask implements Runnable{
 	            options.inSampleSize=calculateInSampleSize(options, 
 	            		AbstractAppActivity.DISPLAY_HEIGHTS/4,
 	            		AbstractAppActivity.DISPLAY_WIDTH/4);
-	            options.inJustDecodeBounds = true;
+	            options.inJustDecodeBounds = false;
 	            Bitmap myBitmap = BitmapFactory.decodeStream(input,null,options);
 	            
 	            tList.setImage(myBitmap);
+	            handler.post(new Runnable() {
+					
+					@Override
+					public void run() {
+						adapter.notifyDataSetChanged();
+						
+					}
+				});
 			}catch(Exception e){
 				e.printStackTrace();
 			}
@@ -87,7 +101,7 @@ public class TweetsDownloadTask implements Runnable{
 		            inSampleSize *= 2;
 		        }
 		    }
-
+		    
 		    return inSampleSize;
 		}
 		
@@ -98,7 +112,6 @@ public class TweetsDownloadTask implements Runnable{
 			Paging page =new Paging(1, count);
 			ResponseList<twitter4j.Status> tweetsList=twitter.getUserTimeline(user.getId(), page);
 			List<TweetRowList> rows=new ArrayList<TweetRowList>();
-			ExecutorService exec=Executors.newFixedThreadPool(4);
 			TweetRowList tweet;
 			for(twitter4j.Status status: tweetsList){
 				MediaEntity[] mEntities=status.getMediaEntities();
@@ -110,6 +123,14 @@ public class TweetsDownloadTask implements Runnable{
 				rows.add(tweet);
 			}
 			adapter.setRows(rows);
+			 handler.post(new Runnable() {
+					
+					@Override
+					public void run() {
+						adapter.notifyDataSetChanged();
+						
+					}
+				});
 		}catch(Exception e){
 			e.printStackTrace();
 		}

@@ -22,6 +22,7 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
@@ -44,6 +45,10 @@ public class AuthActivity extends AbstractAppActivity{
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 	        super.onCreate(savedInstanceState);
+	        DisplayMetrics metrics = new DisplayMetrics();
+			getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		    DISPLAY_WIDTH = metrics.widthPixels;
+		    DISPLAY_HEIGHTS = metrics.heightPixels;
 	        twitterSingleton = TwitterSingleton.getInstance();
 	        setContentView(R.layout.mp_auth);
 	        mButton=(Button) findViewById(R.id.button1);

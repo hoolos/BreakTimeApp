@@ -63,6 +63,11 @@ public class TweetsListAdapter extends BaseAdapter{
 		return arg1;
 	}
 	
+	@Override
+	public synchronized void notifyDataSetChanged() {
+		super.notifyDataSetChanged();
+	};
+	
 	private class TweetViewHolder{
 		public TextView name;
 		public TextView text;
