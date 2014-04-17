@@ -47,7 +47,7 @@ import android.widget.TextView;
 
 public class TweetsActivity extends AbstractAppActivity{
 
-	private User user;
+	public static User user;
 	private FriendRowList rowList;
 	private TextView textView;
 	private ImageView imageView;
@@ -57,13 +57,11 @@ public class TweetsActivity extends AbstractAppActivity{
 	private TweetsDownloadTask task;
 	private Thread thread;
 	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.mp_tweets_layout);
-        lView=(ListView) findViewById(R.id.listView1);
-        adapter=new TweetsListAdapter(new ArrayList<TweetRowList>() , 
-        		getLayoutInflater());
         lView.setAdapter(adapter);
         rowList= (FriendRowList) getIntent().getExtras().getParcelable("User");
         user=rowList.getUser();
@@ -73,9 +71,10 @@ public class TweetsActivity extends AbstractAppActivity{
         textView.setText(rowList.getUser().getName());
         imageView.setImageBitmap(rowList.getImage());
         Handler handler=new Handler();
-        task=new TweetsDownloadTask(handler, user, adapter);
-        thread=new Thread(task);
-        thread.start();
+        lView=(ListView) findViewById(R.id.listView1);
+        task=new TweetsDownloadTask(handler,  adapter);
+        adapter=new TweetsListAdapter(null, getLayoutInflater(), task);
+        task.start();
         rLayout.setOnClickListener(new OnClickListener() {
 			
 			@Override
@@ -106,7 +105,11 @@ public class TweetsActivity extends AbstractAppActivity{
 	public void ifEndOfList(){
 		if(adapter.getCount()==(lView.getLastVisiblePosition()+1)){
 			Log.d("123", thread.getState().name());
+			//if(thread.getState()==State.TERMINATED)
+				//thread.start();
+			//thread.s
 		}
+		
 	}
 	@Override
 	protected void onPause() {

@@ -1,24 +1,62 @@
 package mymaps.utils;
 
+import java.lang.ref.WeakReference;
+import java.net.URL;
+import java.util.concurrent.Future;
+
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+
 import android.graphics.Bitmap;
+import twitter4j.Status;
 import twitter4j.User;
 
-public class TweetRowList extends FriendRowList{
+public class TweetRowList {
 
-	private String tweet;
+	private WeakReference<Future<Void>> refThread;
+	private WeakReference<Bitmap> bitmap;
+	private WeakReference<Status> status;
 	
-	public TweetRowList(User user,String tweet) {
-		super(user);
-		this.tweet=tweet;
+ 	public WeakReference<Bitmap> getBitmap() {
+		return bitmap;
 	}
+
+	public void setBitmap(WeakReference<Bitmap> bitmap) {
+		this.bitmap = bitmap;
+	}
+
+
+
 	
-	public TweetRowList(User user,Bitmap bitmap,String tweet) {
-		super(user,bitmap);
-		this.tweet=tweet;
+	public WeakReference<Status> getStatus() {
+		return status;
 	}
+
+	public void setStatus(WeakReference<Status> status) {
+		this.status = status;
+	}
+
+
+
 	
-	public String getTweet(){
-		return tweet;
+	public TweetRowList(WeakReference<Status> statusReference) {
+		this.status=statusReference;
 	}
+	public TweetRowList() {
+	}
+	public WeakReference<Future<Void>> getRefThread() {
+		return refThread;
+	}
+
+
+
+	public void setRefThread(WeakReference<Future<Void>> refThread) {
+		this.refThread = refThread;
+	}
+
+
+
+
+
+
 
 }
