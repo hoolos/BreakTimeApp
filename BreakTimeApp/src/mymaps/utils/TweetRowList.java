@@ -17,7 +17,10 @@ public class TweetRowList {
 	private WeakReference<Status> status;
 	
  	public WeakReference<Bitmap> getBitmap() {
-		return bitmap;
+		if(bitmap==null){
+			return new WeakReference<Bitmap>(null);
+		}
+ 		return bitmap;
 	}
 
 	public void setBitmap(WeakReference<Bitmap> bitmap) {

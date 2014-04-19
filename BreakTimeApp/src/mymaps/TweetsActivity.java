@@ -18,8 +18,12 @@ import twitter4j.User;
 import com.example.breaktimeapp.R;
 import com.google.android.gms.drive.internal.r;
 
-import mymaps.twitter.download.TweetsDownloadTask;
+import mymaps.builders.ListItem;
+import mymaps.builders.ListItemBuilder;
+import mymaps.builders.TweetListItemBuilder;
+import mymaps.managers.TwitterDownloadManager;
 import mymaps.utils.AbstractAppActivity;
+import mymaps.utils.CachedStructure;
 import mymaps.utils.FriendRowList;
 import mymaps.utils.TweetRowList;
 import mymaps.utils.TweetsListAdapter;
@@ -33,6 +37,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask.Status;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
@@ -45,7 +50,7 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class TweetsActivity extends AbstractAppActivity{
+public class TweetsActivity  extends Activity{
 
 	public static User user;
 	private FriendRowList rowList;
@@ -54,7 +59,7 @@ public class TweetsActivity extends AbstractAppActivity{
 	private RelativeLayout rLayout;
 	private TweetsListAdapter adapter;
 	private ListView lView;
-	private TweetsDownloadTask task;
+	private TwitterDownloadManager<ListItemBuilder> dManager;
 	private Thread thread;
 	
 	
@@ -62,19 +67,42 @@ public class TweetsActivity extends AbstractAppActivity{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.mp_tweets_layout);
-        lView.setAdapter(adapter);
+        lView=(ListView) findViewById(R.id.listView1);
         rowList= (FriendRowList) getIntent().getExtras().getParcelable("User");
         user=rowList.getUser();
-        textView=(TextView) findViewById(R.id.tweet_text);
+        textView=(TextView) findViewById(R.id.user_name);
         imageView=(ImageView) findViewById(R.id.imageView4);
         rLayout=(RelativeLayout) findViewById(R.id.rel_layout1);
         textView.setText(rowList.getUser().getName());
         imageView.setImageBitmap(rowList.getImage());
-        Handler handler=new Handler();
+        Handler handler=new Handler(new Handler.Callback() {
+			
+			@Override
+			public boolean handleMessage(Message arg0) {
+				if(arg0.getData()!=null){
+					try{
+						@SuppressWarnings("unchecked")
+						CachedStructure< ListItem> cachedStructure=
+								(CachedStructure<ListItem>) arg0.getData().
+								getSerializable("Parcel");
+						if(cachedStructure!=null)
+							adapter.setRows(cachedStructure);
+						adapter.notifyDataSetChanged();
+						return true;
+						
+					}catch(Exception e){
+						Log.d("error", e.getMessage());
+						e.printStackTrace();
+					}
+				}
+				return false;
+			}
+		});
         lView=(ListView) findViewById(R.id.listView1);
-        task=new TweetsDownloadTask(handler,  adapter);
-        adapter=new TweetsListAdapter(null, getLayoutInflater(), task);
-        task.start();
+        adapter=new TweetsListAdapter(null, getLayoutInflater());
+        lView.setAdapter(adapter);
+        dManager=new TwitterDownloadManager<ListItemBuilder>(handler, new TweetListItemBuilder());
+        dManager.start();
         rLayout.setOnClickListener(new OnClickListener() {
 			
 			@Override
@@ -88,14 +116,23 @@ public class TweetsActivity extends AbstractAppActivity{
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
 				Log.d("124", "op");
+				if(view.getCount()==lView.getLastVisiblePosition()+1)
+					if(this.SCROLL_STATE_TOUCH_SCROLL==scrollState&&!dManager.isRinning())
+						dManager.start();
+				if(this.SCROLL_STATE_IDLE==scrollState){
+					Log.d("123", "SCROLL_STATE_IDLE");
+					Log.d("123", view.getCount()+"+"+lView.getLastVisiblePosition());
+					//dManager.start();
+					//if(thread.getState()==State.TERMINATED)
+						//thread.start();
+					//thread.s
+				}
 				
 			}
 			
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem,
 					int visibleItemCount, int totalItemCount) {
-				//Log.d("123", task.getStatus().name());
-				ifEndOfList();
 				
 			}
 		});

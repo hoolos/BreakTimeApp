@@ -1,110 +1,99 @@
-package mymaps.twitter.download;
+package mymaps.managers;
 
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import com.google.android.gms.drive.internal.AddEventListenerRequest;
 
 import mymaps.TweetsActivity;
+import mymaps.builders.ListItem;
+import mymaps.builders.ListItemBuilder;
+import mymaps.builders.TweetListItem;
 import mymaps.utils.AbstractAppActivity;
 import mymaps.utils.CachedStructure;
 import mymaps.utils.TweetRowList;
-import mymaps.utils.TweetsListAdapter;
 import mymaps.utils.TwitterSingleton;
-import android.R.integer;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.util.LruCache;
-import android.widget.Adapter;
 import twitter4j.MediaEntity;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
-import twitter4j.User;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 
-public class TweetsDownloadTask {
-
+public class TwitterDownloadManager<T extends ListItemBuilder> {
 	
-
-	private Twitter twitter;
-	private TweetsListAdapter adapter;
+	private static Twitter twitter=TwitterSingleton.getInstance().getTwitter();
 	private int count=1;
 	private Handler handler;
-	private ExecutorService exec;
+	private  ExecutorService exec;
 	private Thread mainThread;
-	private CachedStructure<Long, TweetRowList> lruCache;
+	private CachedStructure<ListItem> lruCache;
+	private T listItemBuilder;
+	private boolean isRunning=false;
 	
-	public TweetsDownloadTask(Handler handler, TweetsListAdapter adapter){
-		this.adapter=adapter;
-		this.handler=handler;
-		twitter=TwitterSingleton.getInstance().getTwitter();
-		exec=Executors.newFixedThreadPool(10);
-		lruCache=new CachedStructure<Long,TweetRowList>(20);
-	
-		
+	public TwitterDownloadManager(Handler handl, T Builder){
+		handler=handl;
+		lruCache=new CachedStructure<ListItem>(30);
+		lruCache.setDownloadManager((TwitterDownloadManager<ListItemBuilder>) this);
+		listItemBuilder=Builder;
+		exec=Executors.newCachedThreadPool();
+
 	}
-	
+	public boolean isRinning(){
+		return isRunning;
+	}
 	//Два раза качается твит
 	public void start(){
-		try{
-			mainThread=new Thread(new Runnable() {
+			//lruCache=new CachedStructure<Long,TweetRowList>(20);
+			isRunning=true;
+			exec.execute(new Runnable() {
 				
 				@Override
 				public void run() {
 					try{
 						Paging page =new Paging(count++);
 						ResponseList<twitter4j.Status> tweetsList=twitter.getUserTimeline(TweetsActivity.user.getId(), page);
-						TweetRowList tweet;
 						Future<Void> future;
 						for(Status status: tweetsList){
 							MediaEntity[] mEntities=status.getMediaEntities();
 							lruCache.addItemId(status.getId());
-							tweet=new TweetRowList(new WeakReference<Status>(status));
+							listItemBuilder.setStatus(status);
+							ListItem item=listItemBuilder.buildListItem();
 							if(mEntities.length!=0){
 								future=exec.submit(new Task2(mEntities[0].getMediaURL(),
-										tweet));
-								tweet.setRefThread(new WeakReference<Future<Void>>(future));
+										item));
+								item.addThreadRef(new SoftReference<Future<?>>(future));
 							}else{
-								tweet.setRefThread(null);
+								item.addThreadRef(null);
 							}
-							lruCache.put(lruCache.getItemsCount(),tweet);
+							lruCache.put(lruCache.getItemsCount(), item);
 						}
 						//adapter.setRows(rows);
-						 handler.post(new Runnable() {
-								
-								@Override
-								public void run() {
-									adapter.notifyDataSetChanged();
-									
-								}
-							});
+						Message msg=new Message();
+						Bundle bundle=new Bundle();
+						bundle.putSerializable("Parcel", lruCache);
+						msg.setData(bundle);
+						handler.sendMessage(msg);
+						isRunning=false;
 					}catch(Exception e){
 						e.printStackTrace();
 					}
 					
 				}
 			});
-		}catch(Exception e){
-			e.printStackTrace();
-		}
 	}
 	
 	public void stopIfDownloading(TweetRowList tList,int pos){
 		
-		Future<Void> future=(Future<Void>) tList.getRefThread();
+		Future<Void> future=tList.getRefThread().get();
 		
 		if(future.isDone()||future==null){
 			return;
@@ -121,16 +110,17 @@ public class TweetsDownloadTask {
 		}*/
 			
 	}
-	public void reloadTweet(Long sLong,TweetRowList tList){
-		exec.execute(new Task1(sLong, tList));
+	public  void downloadTweet(Long sLong,ListItem tList){
+		Thread thread=new Thread(new Task1(sLong, tList));
+		thread.start();
 		
 	}
-	private class Task1 implements Runnable{
+	private  class Task1 implements Runnable{
 
 		private Long statusId;
-		private TweetRowList tList;
+		private ListItem tList;
 		
-		public Task1(Long status, TweetRowList tList){
+		public Task1(Long status, ListItem tList){
 			this.statusId=status;
 			this.tList=tList;
 		}
@@ -141,15 +131,14 @@ public class TweetsDownloadTask {
 				Future<Void> future;
 				Status status=twitter.showStatus(statusId);
 				MediaEntity[] mEntities=status.getMediaEntities();
-				tList.setStatus(new WeakReference<Status>(status));
+				tList.addStatus(status);
 				if(mEntities.length!=0){
 					future=exec.submit(new Task2(mEntities[0].getMediaURL(),
 							tList));
-					tList.setRefThread(new WeakReference<Future<Void>>(future));
+					tList.addThreadRef(new SoftReference<Future<?>>(future));
 				}else{
-					tList.setRefThread(null);
+					tList.addThreadRef(null);
 				}
-				tList.setStatus(new WeakReference<Status>(status));
 			}catch(Exception e){
 				e.printStackTrace();
 			}
@@ -160,10 +149,10 @@ public class TweetsDownloadTask {
 	
 	private class Task2 implements Callable<Void>{
 
-		private TweetRowList tList;
+		private ListItem tList;
 		private String url1;
 		
-		public Task2(String url,TweetRowList tList){
+		public Task2(String url,ListItem tList){
 			this.tList=tList;
 			this.url1=url;
 		}
@@ -183,15 +172,8 @@ public class TweetsDownloadTask {
 	            options.inJustDecodeBounds = false;
 	            Bitmap myBitmap = BitmapFactory.decodeStream(input,null,options);
 	            
-	            tList.setBitmap(new WeakReference<Bitmap>(myBitmap));
-	            handler.post(new Runnable() {
-					
-					@Override
-					public void run() {
-						adapter.notifyDataSetChanged();
-						
-					}
-				});
+	            tList.addBitmap((myBitmap));
+				handler.sendMessage(new Message());
 			}catch(Exception e){
 				e.printStackTrace();
 			}
