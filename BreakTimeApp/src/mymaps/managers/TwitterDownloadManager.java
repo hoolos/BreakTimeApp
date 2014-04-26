@@ -13,6 +13,7 @@ import mymaps.TweetsActivity;
 import mymaps.builders.ListItem;
 import mymaps.builders.ListItemBuilder;
 import mymaps.builders.TweetListItem;
+import mymaps.sqldb.DBManagerForListItem;
 import mymaps.utils.AbstractAppActivity;
 import mymaps.utils.CachedStructure;
 import mymaps.utils.TweetRowList;
@@ -22,30 +23,33 @@ import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
-public class TwitterDownloadManager<T extends ListItemBuilder> {
+public class TwitterDownloadManager<T extends ListItemBuilder> implements NotifyDownloadManager{
 	
 	private static Twitter twitter=TwitterSingleton.getInstance().getTwitter();
 	private int count=1;
 	private Handler handler;
 	private  ExecutorService exec;
+	private  ExecutorService exec1;
 	private Thread mainThread;
 	private CachedStructure<ListItem> lruCache;
-	private T listItemBuilder;
 	private boolean isRunning=false;
+	private DBManagerForListItem dbManager;
 	
-	public TwitterDownloadManager(Handler handl, T Builder){
+	public TwitterDownloadManager(Handler handl, DBManagerForListItem dbManageRef){
 		handler=handl;
-		lruCache=new CachedStructure<ListItem>(30);
+		lruCache=new CachedStructure<ListItem>(35);
 		lruCache.setDownloadManager((TwitterDownloadManager<ListItemBuilder>) this);
-		listItemBuilder=Builder;
-		exec=Executors.newCachedThreadPool();
-
+		exec=Executors.newFixedThreadPool(6);
+		exec1=Executors.newFixedThreadPool(6);
+		dbManager=dbManageRef;
+		dbManager.setNottifyDownloadManager((NotifyDownloadManager)this);
 	}
 	public boolean isRinning(){
 		return isRunning;
@@ -60,20 +64,23 @@ public class TwitterDownloadManager<T extends ListItemBuilder> {
 				public void run() {
 					try{
 						Paging page =new Paging(count++);
-						ResponseList<twitter4j.Status> tweetsList=twitter.getUserTimeline(TweetsActivity.user.getId(), page);
+						ResponseList<twitter4j.Status> tweetsList=twitter.getUserTimeline(TweetsActivity.userInfo.
+								getUser().getId(), page);
 						Future<Void> future;
+						dbManager.bulkPutToDB(tweetsList.subList(0, tweetsList.size()));
 						for(Status status: tweetsList){
 							MediaEntity[] mEntities=status.getMediaEntities();
 							lruCache.addItemId(status.getId());
-							listItemBuilder.setStatus(status);
-							ListItem item=listItemBuilder.buildListItem();
+							ListItem item =new TweetListItem();
+							item.addStatus(status);
 							if(mEntities.length!=0){
-								future=exec.submit(new Task2(mEntities[0].getMediaURL(),
+								future=exec1.submit(new Task2(mEntities[0].getMediaURL(),
 										item));
-								item.addThreadRef(new SoftReference<Future<?>>(future));
+								item.addThreadRef(future);
 							}else{
 								item.addThreadRef(null);
 							}
+							lruCache.setDBManager(dbManager);
 							lruCache.put(lruCache.getItemsCount(), item);
 						}
 						//adapter.setRows(rows);
@@ -135,7 +142,7 @@ public class TwitterDownloadManager<T extends ListItemBuilder> {
 				if(mEntities.length!=0){
 					future=exec.submit(new Task2(mEntities[0].getMediaURL(),
 							tList));
-					tList.addThreadRef(new SoftReference<Future<?>>(future));
+					tList.addThreadRef(future);
 				}else{
 					tList.addThreadRef(null);
 				}
@@ -173,6 +180,7 @@ public class TwitterDownloadManager<T extends ListItemBuilder> {
 	            Bitmap myBitmap = BitmapFactory.decodeStream(input,null,options);
 	            
 	            tList.addBitmap((myBitmap));
+	            dbManager.updateBitmap(tList.getStatus().getId(), myBitmap);
 				handler.sendMessage(new Message());
 			}catch(Exception e){
 				e.printStackTrace();
@@ -202,6 +210,11 @@ public class TwitterDownloadManager<T extends ListItemBuilder> {
 		    return inSampleSize;
 		}
 			
+	}
+
+	@Override
+	public void callback() {
+		handler.sendMessage(new Message());
 	}
 	
 }

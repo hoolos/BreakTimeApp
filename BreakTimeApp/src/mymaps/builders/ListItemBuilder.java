@@ -11,7 +11,7 @@ public abstract class ListItemBuilder {
 	protected ListItem lItem;
 	
 	public abstract void setStatus(Status status);
-	public abstract void  setThreadRef(SoftReference<Future<?>> thread);
+	public abstract void  setThreadRef(Future<?> thread);
 	public abstract void setBitmap(Bitmap bitmap);
 	public abstract ListItem buildListItem();
 }

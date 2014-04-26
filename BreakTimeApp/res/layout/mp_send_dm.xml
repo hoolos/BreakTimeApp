@@ -21,18 +21,27 @@
             android:id="@+id/textView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_toRightOf="@+id/imageView1"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
             android:text="TextView"
             android:textSize="15dp" />
+
     </RelativeLayout>
+
+    <ListView
+        android:id="@+id/listView1"
+        android:layout_width="match_parent"
+        android:layout_height="307dp" >
+
+    </ListView>
 
     <EditText
         android:id="@+id/editText1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.05"
+        android:layout_weight="0.01"
         android:ems="10"
+        android:hint="Send Message"
         android:inputType="textMultiLine" >
 
         <requestFocus />

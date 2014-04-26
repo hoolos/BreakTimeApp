@@ -11,13 +11,13 @@ public  abstract class ListItem {
 
 	protected Status status=null;
 	protected List<Bitmap> bitmaps=null;
-	protected List<SoftReference<Future<?>>> refThreads=null;
+	protected List<Future<?>> refThreads=null;
 	
 	public abstract void addBitmap(Bitmap bitReference);
-	public abstract void addThreadRef(SoftReference<Future<?>> thrReference);
+	public abstract void addThreadRef(Future<?> thrReference);
 	public abstract void addStatus(Status status);
 	
 	public abstract Bitmap getBitmap();
-	public abstract SoftReference<Future<?>> getThreadRef();
+	public abstract Future<?> getThreadRef();
 	public abstract Status getStatus();
 }

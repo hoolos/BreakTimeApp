@@ -22,6 +22,7 @@ import mymaps.builders.ListItem;
 import mymaps.builders.ListItemBuilder;
 import mymaps.builders.TweetListItemBuilder;
 import mymaps.managers.TwitterDownloadManager;
+import mymaps.sqldb.DBManagerForListItem;
 import mymaps.utils.AbstractAppActivity;
 import mymaps.utils.CachedStructure;
 import mymaps.utils.FriendRowList;
@@ -52,8 +53,7 @@ import android.widget.TextView;
 
 public class TweetsActivity  extends Activity{
 
-	public static User user;
-	private FriendRowList rowList;
+	public static FriendRowList userInfo;
 	private TextView textView;
 	private ImageView imageView;
 	private RelativeLayout rLayout;
@@ -61,6 +61,7 @@ public class TweetsActivity  extends Activity{
 	private ListView lView;
 	private TwitterDownloadManager<ListItemBuilder> dManager;
 	private Thread thread;
+	private DBManagerForListItem dbManager;
 	
 	
 	@Override
@@ -68,13 +69,12 @@ public class TweetsActivity  extends Activity{
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.mp_tweets_layout);
         lView=(ListView) findViewById(R.id.listView1);
-        rowList= (FriendRowList) getIntent().getExtras().getParcelable("User");
-        user=rowList.getUser();
+        userInfo= (FriendRowList) getIntent().getExtras().getParcelable("User");
         textView=(TextView) findViewById(R.id.user_name);
         imageView=(ImageView) findViewById(R.id.imageView4);
         rLayout=(RelativeLayout) findViewById(R.id.rel_layout1);
-        textView.setText(rowList.getUser().getName());
-        imageView.setImageBitmap(rowList.getImage());
+        textView.setText(userInfo.getUser().getName());
+        imageView.setImageBitmap(userInfo.getImage());
         Handler handler=new Handler(new Handler.Callback() {
 			
 			@Override
@@ -101,7 +101,8 @@ public class TweetsActivity  extends Activity{
         lView=(ListView) findViewById(R.id.listView1);
         adapter=new TweetsListAdapter(null, getLayoutInflater());
         lView.setAdapter(adapter);
-        dManager=new TwitterDownloadManager<ListItemBuilder>(handler, new TweetListItemBuilder());
+        dbManager=new DBManagerForListItem(getApplicationContext());
+        dManager=new TwitterDownloadManager<ListItemBuilder>(handler, dbManager);
         dManager.start();
         rLayout.setOnClickListener(new OnClickListener() {
 			
@@ -152,6 +153,7 @@ public class TweetsActivity  extends Activity{
 	protected void onPause() {
 		// TODO Auto-generated method stub
 		super.onPause();
+		dbManager.deleteDataBase();
 	}
 
 	@Override

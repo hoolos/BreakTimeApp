@@ -25,7 +25,6 @@ public class TweetsListAdapter extends BaseAdapter{
 	private CachedStructure<ListItem> tweetRowList;
 	private LayoutInflater inflater;
 	private TweetViewHolder holder;
-	private User user;
 	public TweetsListAdapter(CachedStructure<ListItem> list, LayoutInflater inflater){
 		if(list==null){
 			this.tweetRowList=new CachedStructure<ListItem>(1);
@@ -33,7 +32,6 @@ public class TweetsListAdapter extends BaseAdapter{
 			this.tweetRowList=list;
 		}
 		this.inflater=inflater;
-		user=TweetsActivity.user;
 		
 	}
 	@Override
@@ -71,17 +69,17 @@ public class TweetsListAdapter extends BaseAdapter{
 			holder=(TweetViewHolder) arg1.getTag();
 			if(holder.tList.getThreadRef()!=null){
 				try{
-					if(holder.tList.getThreadRef().get()!=null)
-						holder.tList.getThreadRef().get().cancel(true);
+					holder.tList.getThreadRef().cancel(true);
 				}catch(Exception e){
 					Log.d("error", e.getMessage());
 					e.printStackTrace();
 				}
 			}
-			holder.name.setText(user.getName());
+			holder.name.setText(TweetsActivity.userInfo.getUser().getName());
 			holder.text.setText(status==null?"":status.getText());
 			holder.tList=row;
 			holder.imageView.setImageBitmap(row.getBitmap());
+			holder.profile.setImageBitmap(TweetsActivity.userInfo.getImage());
 		return arg1;
 	}
 	
@@ -96,9 +94,6 @@ public class TweetsListAdapter extends BaseAdapter{
 		public ImageView imageView;
 		public ImageView profile;
 		public ListItem tList;
-	}
-	public void setUser(User user){
-		this.user=user;
 	}
 	public void setRows(CachedStructure< ListItem> list){
 		this.tweetRowList=list;

@@ -12,7 +12,7 @@ public class TweetListItem extends ListItem {
 	public TweetListItem() {
 		bitmaps=new ArrayList<Bitmap>();
 		bitmaps.add(null);
-		refThreads=new ArrayList<SoftReference<Future<?>>>();
+		refThreads=new ArrayList<Future<?>>();
 		refThreads.add(null);
 	}
 	@Override
@@ -22,7 +22,7 @@ public class TweetListItem extends ListItem {
 	}
 
 	@Override
-	public synchronized void addThreadRef(SoftReference<Future<?>> thrReference) {
+	public synchronized void addThreadRef(Future<?> thrReference) {
 		refThreads.set(0,thrReference);
 		
 	}
@@ -37,7 +37,7 @@ public class TweetListItem extends ListItem {
 		return bitmaps.get(0);
 	}
 	@Override
-	public SoftReference<Future<?>> getThreadRef() {
+	public Future<?> getThreadRef() {
 		return refThreads.get(0);
 	}
 	@Override

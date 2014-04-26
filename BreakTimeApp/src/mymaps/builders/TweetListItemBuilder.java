@@ -19,7 +19,7 @@ public class TweetListItemBuilder extends ListItemBuilder{
 	}
 
 	@Override
-	public void setThreadRef(SoftReference<Future<?>> thread) {
+	public void setThreadRef(Future<?> thread) {
 		lItem.addThreadRef(thread);
 		
 	}
