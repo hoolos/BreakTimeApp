@@ -3,6 +3,8 @@ package mymaps.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import mymaps.list.items.FriendListItem;
+
 import com.example.breaktimeapp.R;
 
 import twitter4j.User;
@@ -17,13 +19,13 @@ import android.widget.TextView;
 
 public class FriendListAdapter extends BaseAdapter{
 
-	private List<FriendRowList> users;
+	private List<FriendListItem> users;
 	private LayoutInflater mInflater;
 	private FriendListHolder holder;
 	
-	public FriendListAdapter(List<FriendRowList> users, LayoutInflater mInflater){
+	public FriendListAdapter(List<FriendListItem> users, LayoutInflater mInflater){
 		if(users==null){
-			this.users=new ArrayList<FriendRowList>();
+			this.users=new ArrayList<FriendListItem>();
 		}
 		else{
 			this.users=users;
@@ -52,7 +54,7 @@ public class FriendListAdapter extends BaseAdapter{
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 
-		FriendRowList user=(FriendRowList)getItem(position);
+		FriendListItem user=(FriendListItem)getItem(position);
 		Bitmap mBitmap=user.getImage();
 		if(convertView==null){
 			 convertView = mInflater.inflate(R.layout.mp_f_list_enty, null);
@@ -69,12 +71,12 @@ public class FriendListAdapter extends BaseAdapter{
 		return convertView;
 	}
 
-	public void setUsers(List<FriendRowList> users) {
+	public void setUsers(List<FriendListItem> users) {
 		this.users=users;
 		notifyDataSetChanged();
 	}
 	
-	public List<FriendRowList> getUsers(){
+	public List<FriendListItem> getUsers(){
 		return users;
 	}
 	private class FriendListHolder{

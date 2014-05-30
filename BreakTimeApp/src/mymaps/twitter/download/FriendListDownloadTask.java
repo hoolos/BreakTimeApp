@@ -14,9 +14,10 @@ import org.gmarz.googleplaces.models.DetailsResult;
 import org.gmarz.googleplaces.models.PlacesResult;
 
 
+
+import mymaps.list.items.FriendListItem;
 import mymaps.utils.ColumnsForCursors;
 import mymaps.utils.FriendListAdapter;
-import mymaps.utils.FriendRowList;
 import mymaps.utils.TwitterSingleton;
 import twitter4j.PagableResponseList;
 import twitter4j.Twitter;
@@ -30,7 +31,7 @@ import android.widget.Adapter;
 import android.widget.BaseAdapter;
 import android.widget.SimpleCursorAdapter;
 
-public class FriendListDownloadTask extends AsyncTask <Void,Void, List<FriendRowList>>{
+public class FriendListDownloadTask extends AsyncTask <Void,Void, List<FriendListItem>>{
 	
 
 	private FriendListAdapter adapter;
@@ -42,19 +43,19 @@ public class FriendListDownloadTask extends AsyncTask <Void,Void, List<FriendRow
 		// TODO Auto-generated constructor stub
 	}
 	@Override
-	protected List<FriendRowList> doInBackground(Void... arg0) {
+	protected List<FriendListItem> doInBackground(Void... arg0) {
 		PagableResponseList<User> friendsList;
 		Long cursorLong=(long) -1;
 		ExecutorService exec=Executors.newCachedThreadPool();
 		GooglePlaces places=TwitterSingleton.getInstance().getPlaces();
-		List<FriendRowList> users= new ArrayList<FriendRowList>();
+		List<FriendListItem> users= new ArrayList<FriendListItem>();
 		PlacesResult pl;
 			do{
 				try{
 					friendsList=twitter.getFriendsList(twitter.getId(), cursorLong);
 					cursorLong=friendsList.getNextCursor();
 					for(final User r:friendsList){
-						FriendRowList fl=new FriendRowList(r);
+						FriendListItem fl=new FriendListItem(r);
 						users.add(fl);
 						exec.execute(new Task1(fl));
 
@@ -70,7 +71,7 @@ public class FriendListDownloadTask extends AsyncTask <Void,Void, List<FriendRow
 	
 	
 	@Override
-	protected void onPostExecute(List<FriendRowList> users){
+	protected void onPostExecute(List<FriendListItem> users){
 		try{
 			adapter.setUsers(users);
 			
@@ -89,8 +90,8 @@ public class FriendListDownloadTask extends AsyncTask <Void,Void, List<FriendRow
   
 	 private class Task1 implements Runnable{
 		  
-		  private FriendRowList rl;
-		  public Task1(FriendRowList rl){
+		  private FriendListItem rl;
+		  public Task1(FriendListItem rl){
 			  this.rl=rl;
 		  }
 

@@ -2,12 +2,12 @@ package mymaps.twitter.download;
 
 import java.util.List;
 
-import mymaps.utils.FriendRowList;
+import mymaps.list.items.FriendListItem;
 
 public interface AdapterCallbackInt {
 	
 	public void onDataChanged();
 
-	public void onDataSet(List<FriendRowList> users);
+	public void onDataSet(List<FriendListItem> users);
 
 }
