@@ -68,6 +68,7 @@ public class TweetsActivity extends BaseAppActivity {
 	    }
 	});
 	strategy = new TweetsActivityStrategy(getApplicationContext(), handler);
+	strategy.downloadTweets();
 	lView = (ListView) findViewById(R.id.listView1);
 	adapter = new TweetsListAdapter(null, getLayoutInflater());
 	lView.setAdapter(adapter);

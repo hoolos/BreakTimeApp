@@ -2,7 +2,7 @@ package mymaps;
 
 import mymaps.cache.CachedStracture;
 import mymaps.db.dao.TweetsDao;
-import mymaps.managers.DirectMessagesDowloadManager;
+import mymaps.strategies.DMActivityStrategy;
 import mymaps.utils.DirMessagesListAdapter;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,6 +22,7 @@ public class SendDMActivity extends BaseAppActivity {
     private EditText editText;
     private DirMessagesListAdapter adapter;
     private ListView lView;
+    private DMActivityStrategy strategy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +34,7 @@ public class SendDMActivity extends BaseAppActivity {
 	editText = (EditText) findViewById(R.id.editText1);
 	textView.setText(TweetsActivity.userInfo.getUser().getName());
 	imageView.setImageBitmap(TweetsActivity.userInfo.getImage());
-	// adapter=new DirMessagesListAdapter(getLayoutInflater());
+	adapter = new DirMessagesListAdapter(getLayoutInflater());
 	lView.setAdapter(adapter);
 	Handler handler = new Handler(new Handler.Callback() {
 
@@ -57,9 +58,8 @@ public class SendDMActivity extends BaseAppActivity {
 		return false;
 	    }
 	});
-	DirectMessagesDowloadManager task = new DirectMessagesDowloadManager(
-		handler);
-	task.start();
+	strategy = new DMActivityStrategy(getApplicationContext(), handler);
+	strategy.downloadTweets();
 
     }
 
@@ -83,8 +83,10 @@ public class SendDMActivity extends BaseAppActivity {
 
     @Override
     protected void onStop() {
-	// TODO Auto-generated method stub
 	super.onStop();
+	if (strategy != null) {
+	    strategy.deleteDataBase();
+	}
     }
 
 }

@@ -9,6 +9,7 @@ import org.gmarz.googleplaces.GooglePlaces;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.User;
 
 public class BaseManager implements CoreUtils {
 
@@ -46,6 +47,12 @@ public class BaseManager implements CoreUtils {
     @Override
     public <T> List<String> enumToStringArrayList(Class<T> enumType) {
 	return coreUtils.enumToStringArrayList(enumType);
+    }
+
+    @Override
+    public User getAuthenticatedUser() {
+
+	return coreUtils.getAuthenticatedUser();
     }
 
 }

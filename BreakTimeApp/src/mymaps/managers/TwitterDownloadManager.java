@@ -1,9 +1,11 @@
 package mymaps.managers;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,8 @@ import mymaps.BaseAppActivity;
 import mymaps.TweetsActivity;
 import mymaps.cache.CachedListInfo;
 import mymaps.cache.CachedStracture;
+import mymaps.db.DatabaseHelperFriends;
+import mymaps.db.DatabaseHelperSQL;
 import mymaps.db.columns.TweetsImageResColumns;
 import mymaps.db.columns.TweetsTextResColumns;
 import mymaps.db.dao.TweetsDao;
@@ -36,7 +40,6 @@ public class TwitterDownloadManager extends BaseManager implements
 	NotifyDownloadManager {
 
     private static final String TAG = "TwitterDM";
-    private static final String IMAGECOLUMN_STRING = "image_tweet";
     private int count = 1;
     private final Handler handler;
     private final ExecutorService exec;
@@ -77,25 +80,32 @@ public class TwitterDownloadManager extends BaseManager implements
 		    Future<Void> future;
 		    CachedListInfo cListInfo;
 		    BaseListItem item;
-
-		    Map<String, String> textRes = new HashMap<String, String>();
+		    List<Task2> tasks2 = new ArrayList<Task2>();
+		    Map<String, String> textRes;
+		    List<BaseListItem> items = new ArrayList<BaseListItem>();
 		    for (Status status : tweetsList) {
+			textRes = new HashMap<String, String>();
 			item = new BaseListItem();
+			items.add(item);
 			cListInfo = new CachedListInfo(status.getId());
-			textRes.put(TweetsTextResColumns.TweetId.toString(),
+			textRes.put(DatabaseHelperSQL.TEXT_RES_ID,
 				String.valueOf(status.getId()));
 			textRes.put(TweetsTextResColumns.TweetText.toString(),
 				status.getText());
-
+			item.setText(textRes);
 			MediaEntity[] mEntities = status.getMediaEntities();
 
 			if (mEntities.length != 0) {
-			    future = exec1.submit(new Task2(mEntities[0]
-				    .getMediaURL(), item, cListInfo));
-			    item.addRefThreads(future);
+
+			    tasks2.add(new Task2(mEntities[0].getMediaURL(),
+				    item, cListInfo));
+			    // item.addRefThreads(future);
 			}
 			lruCache.put(item, cListInfo);
 		    }
+
+		    dao.saveAll(items);
+		    exec1.invokeAll(tasks2);
 		    Message msg = new Message();
 		    Bundle bundle = new Bundle();
 		    bundle.putSerializable("Parcel", lruCache);
@@ -148,7 +158,7 @@ public class TwitterDownloadManager extends BaseManager implements
 		Future<Void> future;
 		Status status = getTwitter().showStatus(statusId);
 		Map<String, String> textRes = tList.getText();
-		textRes.put(TweetsTextResColumns.TweetId.toString(),
+		textRes.put(DatabaseHelperFriends.TEXT_RES_ID.toString(),
 			String.valueOf(status.getId()));
 		textRes.put(TweetsTextResColumns.TweetText.toString(),
 			status.getText());
@@ -201,8 +211,10 @@ public class TwitterDownloadManager extends BaseManager implements
 
 		Bitmap myBitmap = BitmapFactory.decodeStream(input, null,
 			options);
-		byte[] image = new byte[myBitmap.getByteCount()];
-		input.read(image);
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		myBitmap.compress(Bitmap.CompressFormat.PNG, 0, stream);
+		byte[] image = stream.toByteArray();
+
 		bitmaps.put(TweetsImageResColumns.TweetImage.toString(),
 			myBitmap);
 

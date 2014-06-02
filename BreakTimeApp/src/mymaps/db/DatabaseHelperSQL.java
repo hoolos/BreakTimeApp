@@ -10,18 +10,25 @@ public abstract class DatabaseHelperSQL extends SQLiteOpenHelper implements
 	BaseColumns {
     protected static final String TAG = "DATABASE_HELPER";
 
-    public static final String TEXT_RES_TABLE = "text_res";
+    public static final String DATABASE_NAME = "tweets.db";
     public static final String TEXT_RES_ID = "text_res_id";
+    private final String textResTable;
 
     public DatabaseHelperSQL(Context context, String name,
 	    CursorFactory factory, int version,
-	    DatabaseErrorHandler errorHandler) {
+	    DatabaseErrorHandler errorHandler, String table) {
 	super(context, name, factory, version, errorHandler);
+	textResTable = table;
     }
 
     public DatabaseHelperSQL(Context context, String name,
-	    CursorFactory factory, int version) {
+	    CursorFactory factory, int version, String table) {
 	super(context, name, factory, version);
+	textResTable = table;
+    }
+
+    public String getTable() {
+	return textResTable;
     }
 
 }

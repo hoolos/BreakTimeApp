@@ -46,7 +46,7 @@ public class MainActivity extends ActivityGPS {
 		adapter);
 	f.execute();
 	gpsInit.setUpMap();
-
+	this.getA
 	// mBtnFind=(Button)findViewById(R.id.button1);
 	// mFplace=(EditText)findViewById(R.id.editText1);
 	/*

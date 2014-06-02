@@ -11,9 +11,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import mymaps.db.DatabaseHelperFriends;
+import mymaps.db.DatabaseHelperSQL;
 import mymaps.list.items.BaseListItem;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -25,14 +27,16 @@ public class DatabaseManagerTweets extends
 
     private final int batch = 3;
     private int counter = 0;
+    private final SQLiteDatabase sqlDB;
 
     public DatabaseManagerTweets(DatabaseHelperFriends helper) {
 	dbHelper = helper;
+	sqlDB = dbHelper.getWritableDatabase();
     }
 
     @Override
     public void deleteDataBase() {
-	dbHelper.onUpgrade(dbHelper.getWritableDatabase(), 0, 1);
+	dbHelper.onUpgrade(sqlDB, 0, 1);
     }
 
     @Override
@@ -41,22 +45,21 @@ public class DatabaseManagerTweets extends
 	counter++;
 	if (counter == batch) {
 	    counter = 0;
-	    dManager.callback();
+	    // dManager.callback();
 	}
 	Thread thread = new Thread(new Runnable() {
 
 	    @Override
 	    public void run() {
-		SQLiteDatabase sqlDB;
 		List<String> textColumn = dbHelper.getTextColumns();
 		List<String> bitmapColumns = dbHelper.getBitmapColumns();
 		List<String> dbColumns = new ArrayList<String>();
 		int textColumnSize = 0;
 		int bitmapColumnSize = 0;
+		String string = String.valueOf(params[0]);
 		byte[] image;
-		BaseListItem item = new BaseListItem();
+		Bitmap bitmap;
 		try {
-		    sqlDB = dbHelper.getWritableDatabase();
 		    if (textColumn != null) {
 			textColumnSize = textColumn.size();
 			for (int i = 0; i < textColumnSize; i++) {
@@ -66,39 +69,53 @@ public class DatabaseManagerTweets extends
 		    }
 		    if (bitmapColumns != null) {
 			bitmapColumnSize = bitmapColumns.size();
-			for (int i = 0; i < textColumnSize; i++) {
+			for (int i = 0; i < bitmapColumnSize; i++) {
 			    dbColumns.add(bitmapColumns.get(i));
 			}
 		    }
 		    Cursor cursor;
 		    synchronized (this) {
 			cursor = sqlDB.query(
-				DatabaseHelperFriends.TEXT_RES_TABLE,
-				(String[]) dbColumns.toArray(),
-				DatabaseHelperFriends.TEXT_RES_ID + "=?",
-				new String[] { String.valueOf(params[0]) },
-				null, null, null);
+				dbHelper.getTable(),
+				dbColumns.toArray(new String[dbColumns.size()]),
+				dbColumns.get(0) + "= " + string, null, null,
+				null, null);
 		    }
 		    cursor.moveToFirst();
+		    Log.w("123", String.valueOf(cursor.getCount()));
 		    Map<String, Bitmap> bitmapItems = new HashMap<String, Bitmap>();
 		    Map<String, String> textItems = new HashMap<String, String>();
-		    for (int i = 0; i < textColumnSize; i++) {
-			textItems.put(dbColumns.get(i), cursor.getString(i));
-		    }
-		    for (int i = textColumnSize; i < textColumnSize
-			    + bitmapColumnSize; i++) {
-			image = cursor.getBlob(i);
-			if (image != null) {
-			    Bitmap bitmap = BitmapFactory.decodeByteArray(
-				    image, 0, image.length);
-			    bitmapItems.put(dbColumns.get(i), bitmap);
-			} else {
-			    bitmapItems.put(dbColumns.get(i), null);
+		    for (String s : dbColumns) {
+			try {
+			    textItems.put(s, cursor.getString(cursor
+				    .getColumnIndexOrThrow(s)));
+			} catch (IllegalArgumentException e) {
+			    Log.w(TAG, e.getMessage(), e);
+			} catch (RuntimeException e) {
+			    // TODO: handle exception
+			}
+			try {
+			    image = cursor.getBlob(cursor
+				    .getColumnIndexOrThrow(s));
+			    if (image != null) {
+				bitmap = BitmapFactory.decodeByteArray(image,
+					0, image.length);
+				bitmapItems.put(s, bitmap);
+			    } else {
+				bitmapItems.put(s, null);
+			    }
+			} catch (IllegalArgumentException e) {
+			    Log.w(TAG, e.getMessage(), e);
+			} catch (SQLException e) {
+			    // TODO: handle exception
+			} catch (RuntimeException e) {
+			    // TODO: handle exception
 			}
 		    }
-		    item.setBitmap(bitmapItems);
-		    item.setText(textItems);
 
+		    listItem.setBitmap(bitmapItems);
+		    listItem.setText(textItems);
+		    cursor.close();
 		} catch (Exception e) {
 		    Log.e(TAG, e.getMessage(), e);
 		}
@@ -125,94 +142,44 @@ public class DatabaseManagerTweets extends
 
     @Override
     public void batchPutToDB(List<BaseListItem> batch) {
-	SQLiteDatabase sqlDB;
-	ByteArrayOutputStream in = null;
-	ObjectOutput out = null;
-	sqlDB = dbHelper.getWritableDatabase();
-	String column;
 	List<String> textColumns;
 	List<String> bitmapColumns;
 	byte[] image;
 	ContentValues cv;
 	sqlDB.beginTransaction();
 	try {
-	    in = new ByteArrayOutputStream();
-	    out = new ObjectOutputStream(in);
 	    for (BaseListItem item : batch) {
 		cv = new ContentValues();
-
 		textColumns = dbHelper.getTextColumns();
 		bitmapColumns = dbHelper.getBitmapColumns();
-		for (Entry<String, String> entry : item.getText().entrySet()) {
-		    column = "";
-		    try {
-			String[] splitted = entry.getKey().split(":");
-			if (splitted != null) {
-			    column = splitted[0];
-			}
-			int columnIndex = textColumns.indexOf(column);
-			if (columnIndex != -1) {
-			    cv.put(textColumns.get(columnIndex),
-				    entry.getValue());
-			}
-
-		    } catch (NullPointerException e) {
-			Log.e(TAG, "Cant get column from string", e);
-		    }
-
+		for (String column : textColumns) {
+		    cv.put(column, item.getText().get(column));
 		}
-		for (Entry<String, Bitmap> entry : item.getBitmap().entrySet()) {
-		    column = "";
-		    try {
-			String[] splitted = entry.getKey().split(":");
-			if (splitted != null) {
-			    column = splitted[0];
-			}
-			int columnIndex = bitmapColumns.indexOf(column);
-			if (columnIndex != -1) {
-			    if (entry.getValue().compress(CompressFormat.PNG,
-				    0, in)) {
-				image = in.toByteArray();
-
-				cv.put(bitmapColumns.get(columnIndex), image);
-			    } else {
-				Log.w(TAG,
-					"Cant compress image "
-						+ entry.getValue());
-			    }
-			    in.reset();
-			}
-
-		    } catch (NullPointerException e) {
-			Log.e(TAG, "Cant get column from string", e);
+		for (String column : bitmapColumns) {
+		    Bitmap bitmap = item.getBitmap().get(column);
+		    image = null;
+		    if (bitmap != null) {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream);
+			image = stream.toByteArray();
+			cv.put(column, image);
+			stream.close();
 		    }
-
+		    cv.put(column, image);
 		}
+
 		synchronized (this) {
-		    if (sqlDB.insert(DatabaseHelperFriends.TEXT_RES_TABLE,
-			    null, cv) == -1) {
+		    if (sqlDB.insertOrThrow(dbHelper.getTable(), null, cv) == -1) {
 			Log.e(TAG, "Cant write to db");
 		    }
 		}
 	    }
-	    in.close();
-	    out.close();
 	    sqlDB.setTransactionSuccessful();
 	    sqlDB.endTransaction();
 	} catch (IOException e) {
 	    Log.e(TAG, "Streams error", e);
 	} catch (IllegalStateException e) {
 	    Log.e(TAG, e.getMessage(), e);
-	} finally {
-
-	    try {
-		if (in != null)
-		    in.close();
-		if (out != null)
-		    out.close();
-	    } catch (IOException e) {
-		Log.w(TAG, "Cant close streams", e);
-	    }
 	}
 
     }
@@ -224,8 +191,6 @@ public class DatabaseManagerTweets extends
 
 	    @Override
 	    public void run() {
-		SQLiteDatabase sqlDB;
-		sqlDB = dbHelper.getWritableDatabase();
 		byte[] image = null;
 		String text = null;
 		try {
@@ -249,8 +214,8 @@ public class DatabaseManagerTweets extends
 		    }
 		    synchronized (this) {
 
-			sqlDB.update(DatabaseHelperFriends.TEXT_RES_TABLE, cv,
-				DatabaseHelperFriends.TEXT_RES_ID + "=?",
+			sqlDB.update(dbHelper.getTable(), cv,
+				DatabaseHelperSQL.TEXT_RES_ID + "=?",
 				new String[] { String.valueOf(params[0]) });
 		    }
 		} catch (Exception e) {
@@ -264,11 +229,9 @@ public class DatabaseManagerTweets extends
     }
 
     private void writeItemToDb(BaseListItem item) {
-	SQLiteDatabase sqlDB;
 	ByteArrayOutputStream in = null;
 	ObjectOutput out = null;
 	try {
-	    sqlDB = dbHelper.getWritableDatabase();
 	    String column;
 	    List<String> textColumns;
 	    List<String> bitmapColumns;
@@ -325,8 +288,7 @@ public class DatabaseManagerTweets extends
 	    in.close();
 	    out.close();
 	    synchronized (this) {
-		if (sqlDB
-			.insert(DatabaseHelperFriends.TEXT_RES_TABLE, null, cv) == -1) {
+		if (sqlDB.insert(dbHelper.getTable(), null, cv) == -1) {
 		    Log.e(TAG, "Cant write to db");
 		}
 	    }

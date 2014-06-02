@@ -9,6 +9,7 @@ import org.gmarz.googleplaces.GooglePlaces;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.User;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
@@ -106,6 +107,12 @@ public abstract class BaseAppActivity extends Activity implements CoreUtils {
     @Override
     public <T> List<String> enumToStringArrayList(Class<T> enumType) {
 	return coreUtils.enumToStringArrayList(enumType);
+    }
+
+    @Override
+    public User getAuthenticatedUser() {
+
+	return coreUtils.getAuthenticatedUser();
     }
 
 }

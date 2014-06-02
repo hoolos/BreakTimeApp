@@ -123,6 +123,7 @@ public class AuthManager extends BaseManager {
 
 			    Log.w(TAG, "" + accessToken.getToken());
 			    getTwitter().verifyCredentials();
+			    appHandler.sendEmptyMessage(AUTH_SUCCESSFUL);
 			}
 		    } catch (TwitterException e) {
 			// Check log for login errors

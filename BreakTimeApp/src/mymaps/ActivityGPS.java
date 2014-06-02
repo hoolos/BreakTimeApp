@@ -10,6 +10,7 @@ import org.gmarz.googleplaces.GooglePlaces;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.User;
 import android.content.Context;
 import android.location.LocationListener;
 import android.net.ConnectivityManager;
@@ -71,5 +72,10 @@ public abstract class ActivityGPS extends FragmentActivity implements
     @Override
     public <T> List<String> enumToStringArrayList(Class<T> enumType) {
 	return coreUtils.enumToStringArrayList(enumType);
+    }
+
+    @Override
+    public User getAuthenticatedUser() {
+	return coreUtils.getAuthenticatedUser();
     }
 }

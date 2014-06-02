@@ -1,5 +1,6 @@
 package mymaps.db;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
@@ -12,40 +13,46 @@ public class DatabaseHelperFriends extends DatabaseHelperSQL {
     public static final int DATABASE_VERSION = 1;
     private final List<String> text;
     private final List<String> bitmap;
-    private static String TEXT_RES_CREATE_SCRIPT = "create table "
-	    + TEXT_RES_TABLE + " (" + BaseColumns._ID
-	    + " integer primary key autoincrement, " + TEXT_RES_ID
-	    + " integer not null,";
 
-    public DatabaseHelperFriends(Context context, List<String> textColumns,
-	    List<String> bitmapColumns) {
-	super(context, DATABASE_NAME, null, DATABASE_VERSION);
-	text = textColumns;
-	bitmap = bitmapColumns;
+    private final String createScript;
+
+    public DatabaseHelperFriends(Context context, String tableName,
+	    List<String> textColumns, List<String> bitmapColumns) {
+	super(context, DATABASE_NAME, null, DATABASE_VERSION, tableName);
+	text = new ArrayList<String>();
+	bitmap = new ArrayList<String>();
+	text.add(TEXT_RES_ID);
+	text.addAll(textColumns);
+	bitmap.addAll(bitmapColumns);
+	createScript = "create table " + getTable() + " (" + BaseColumns._ID
+		+ " integer primary key autoincrement, " + TEXT_RES_ID
+		+ " integer not null,";
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-	String createScript = TEXT_RES_CREATE_SCRIPT;
-	for (String column : text) {
+	String script = createScript;
+	for (int i = 1; i < text.size(); i++) {
+	    String column = text.get(i);
 	    if (!column.isEmpty()) {
-		createScript = createScript + column + " TEXT, ";
+		script = script + column + " TEXT, ";
 	    }
 	}
 	for (String column : bitmap) {
 	    if (!bitmap.isEmpty()) {
-		createScript = createScript + column + " BLOB, ";
+		script = script + column + " BLOB, ";
 	    }
 	}
-	createScript = createScript + ");";
-	db.execSQL(createScript);
+	script = script.substring(0, script.lastIndexOf(","));
+	script = script + ");";
+	db.execSQL(script);
 
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
-	db.execSQL("DROP TABLE IF IT EXIST " + TEXT_RES_TABLE);
+	db.execSQL("DROP TABLE IF EXISTS " + getTable());
 	onCreate(db);
 
     }

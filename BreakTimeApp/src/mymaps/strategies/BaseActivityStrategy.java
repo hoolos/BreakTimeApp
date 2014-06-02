@@ -9,8 +9,14 @@ import org.gmarz.googleplaces.GooglePlaces;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.User;
 
 public abstract class BaseActivityStrategy implements CoreUtils {
+
+    @Override
+    public User getAuthenticatedUser() {
+	return coreUtils.getAuthenticatedUser();
+    }
 
     private static CoreUtils coreUtils = CoreUtilsImplSingleton.getInstance();
 

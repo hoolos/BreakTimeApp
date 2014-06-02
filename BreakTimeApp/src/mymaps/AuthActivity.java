@@ -2,7 +2,6 @@ package mymaps;
 
 import mymaps.managers.AuthManager;
 import mymaps.utils.TwitterStrConst;
-import twitter4j.auth.RequestToken;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -19,8 +18,6 @@ import android.widget.TextView;
 import com.example.breaktimeapp.R;
 
 public class AuthActivity extends BaseAppActivity {
-
-    private static RequestToken requestToken;
 
     private Button mButton;
     private SharedPreferences sPreferences;
@@ -48,10 +45,12 @@ public class AuthActivity extends BaseAppActivity {
 		if (arg0.what == AuthManager.AUTH_SUCCESSFUL) {
 		    startActivity(new Intent(getApplicationContext(),
 			    MainActivity.class));
+		    finish();
 		}
 		if (arg0.what == AuthManager.START_AUTH) {
 		    startActivity(new Intent(Intent.ACTION_VIEW, Uri
-			    .parse(requestToken.getAuthenticationURL()))
+			    .parse(AuthManager.getRequestToken()
+				    .getAuthenticationURL()))
 			    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 		}
 		return false;

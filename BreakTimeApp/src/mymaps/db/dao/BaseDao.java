@@ -35,7 +35,7 @@ public abstract class BaseDao<T extends BaseListItem, S extends DatabaseHelperSQ
 
     public void updateBitmap(Long textResId, String column, byte[] image) {
 
-	dbManager.updateItem(textResId, column, image);
+	dbManager.updateItem(String.valueOf(textResId), column, image);
     }
 
     public abstract List<String> getBitmapColumns();

@@ -14,10 +14,12 @@ public class TweetsActivityStrategy extends BaseActivityStrategy {
     private final TwitterDownloadManager dManager;
     private final DatabaseManagerTweets dbManager;
     private final TweetsDao dao;
+    private final String tableName = "Tweets_table ";
 
     public TweetsActivityStrategy(Context context, Handler handler) {
 	dbManager = new DatabaseManagerTweets(new DatabaseHelperFriends(
-		context, enumToStringArrayList(TweetsTextResColumns.class),
+		context, tableName,
+		enumToStringArrayList(TweetsTextResColumns.class),
 		enumToStringArrayList(TweetsImageResColumns.class)));
 	dao = new TweetsDao(dbManager);
 

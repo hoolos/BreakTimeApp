@@ -6,6 +6,7 @@ import org.gmarz.googleplaces.GooglePlaces;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.User;
 
 public interface CoreUtils {
 
@@ -21,4 +22,6 @@ public interface CoreUtils {
     public boolean isAuthenticated();
 
     public <T> List<String> enumToStringArrayList(Class<T> enumType);
+
+    public User getAuthenticatedUser();
 }

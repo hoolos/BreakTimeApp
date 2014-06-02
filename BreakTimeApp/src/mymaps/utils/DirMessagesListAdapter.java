@@ -1,6 +1,9 @@
 package mymaps.utils;
 
+import java.util.Map;
+
 import mymaps.cache.CachedStracture;
+import mymaps.db.columns.DirectMessagesResColumns;
 import mymaps.db.dao.TweetsDao;
 import mymaps.list.items.BaseListItem;
 import android.view.LayoutInflater;
@@ -16,9 +19,8 @@ public class DirMessagesListAdapter extends BaseAdapter {
     private CachedStracture<TweetsDao> msgCache;
     private final LayoutInflater lInflater;
 
-    public DirMessagesListAdapter(LayoutInflater inflater,
-	    CachedStracture<TweetsDao> list) {
-	msgCache = list;
+    public DirMessagesListAdapter(LayoutInflater inflater) {
+	msgCache = new CachedStracture<TweetsDao>(15);
 	lInflater = inflater;
     }
 
@@ -52,13 +54,15 @@ public class DirMessagesListAdapter extends BaseAdapter {
 	    arg1.setTag(handler);
 	}
 	Handler handler = (Handler) arg1.getTag();
-	// DirectMessage friendMsg = msg.getFriendMessage();
-	// DirectMessage userMsg = msg.getMessage();
+	Map<String, String> text = msg.getText();
+	if (text.get(DirectMessagesResColumns.Owner.toString()) == "true") {
+	    handler.userMessage.setText(text.get(DirectMessagesResColumns.DM
+		    .toString()));
+	} else {
+	    handler.friendMessage.setText(text.get(DirectMessagesResColumns.DM
+		    .toString()));
+	}
 
-	// handler.friendMessage.setText(friendMsg == null ? "" : friendMsg
-	// .getText());
-	// handler.userMessage.setText(userMsg == null ? "" :
-	// userMsg.getText());
 	return arg1;
 
     }
